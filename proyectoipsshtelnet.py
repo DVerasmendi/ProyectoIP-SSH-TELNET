@@ -152,9 +152,9 @@ def port_open(ip):
 def insertBD (ip, user1 , password, api_value, ssh_value, ping_value, port_open, cont):
 
     db = mysql.connect(
-        host = "10.67.125.241",
+        host = "127.0.0.1",
         user = "root",
-        passwd = "root",
+        passwd = "",
         database ="network" #Con esto se valida que la base de datos existe, de no existir, arroja error
     )
 
@@ -180,8 +180,8 @@ def insertBD (ip, user1 , password, api_value, ssh_value, ping_value, port_open,
 def login(ip):
     try:
         user_password_list = []
-        for i in ['admin','tfa','austro']:
-            for j in ['N0s31717!','N0s31717','austro2018','austro2019','B9s31717!!.','B0s31818!!.','B8s31717!!.']:
+        for i in ['admin','tfa','austro','jedis']:
+            for j in ['N0s31717!','N0s31717','austro2018','austro2019','B9s31717!!.','B0s31818!!.','B8s31717!!.','austro','austro2018','austro2019']:
                 user_password_list.append((i,j))
                 
         
