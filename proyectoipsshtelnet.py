@@ -14,7 +14,7 @@ import sys
 import mysql.connector as mysql
 import socket
 #############################
-ip='2.3.4.5'
+
 ############################# API ############################################    
 def api1(ip, user, password):
 
@@ -207,4 +207,7 @@ def login(ip):
         print ('')
         return 0        
 ################################################################################
-login(ip)
+
+if len(sys.argv) == 2:
+    ip=sys.argv[1]
+    login(ip)
