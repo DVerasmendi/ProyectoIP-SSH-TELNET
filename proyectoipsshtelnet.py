@@ -1,5 +1,8 @@
 #API
 from librouteros import connect
+from librouteros.login import plain, token
+from librouteros.query import Key
+import pprint
 #SHH
 import paramiko
 #PING
@@ -13,7 +16,6 @@ import locale
 import sys
 import mysql.connector as mysql
 import socket
-#############################
 
 ############################# API ############################################    
 def api1(ip, user, password):
@@ -79,7 +81,7 @@ def ssh(ip, user, password):
         print ('SSH = NOT OK')
         return 0
 
- ################################    TELNET   ######################################    
+################################    TELNET   ######################################    
 def telnet(ip, user, password):
     
     try:
@@ -120,64 +122,134 @@ def telnet(ip, user, password):
     except:
         print ('TELNET = NOT OK')
         return 0
-################################    Función para hacer ping    ################################
-def check_host_ping (domain=""): 
-    try:
-        ping_response = ping(domain)
-        if isinstance(ping_response, float):
-            print("PING--->UP")
-            return (1)
-        else:
-            print("PING--->DOWN")
-            return (0)
-    except:
-        print ('PING = NOT OK')
-        return 0       
+   
 ################################   Función para validar puerto abierto   ######################
 def port_open(ip):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result = sock.connect_ex((ip,8291))
+        result = sock.connect_ex((ip,8728))
+
         if result == 0:
-            print("Port is open")
-            return 1
+            print("API is open")
+            api=1
         else:
-            print("Port is close")
+            print("API is close")
             sock.close()
-            return 0
+            api=0
+
+    except:
+        print ('Puerto = NOT OK')
+        api=0
+
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        result = sock.connect_ex((ip,22))
+
+        if result == 0:
+            print("SSH is open")
+            ssh=1
+        else:
+            print("SSH is close")
+            sock.close()
+            ssh=0
+
+    except:
+        print ('Puerto = NOT OK')
+        ssh=0  
+
+    try:
+        ping_response = ping(ip)
+        if isinstance(ping_response, float):
+            print("PING--->UP")
+            ping_status=1
+        else:
+            print("PING--->DOWN")
+            ping_status=0
     except:
         print ('PING = NOT OK')
-        return 0        
+        ping_status=0
+
+    return (api,ssh,ping_status)    
+          
 ############################ LLENAR BASE DE DATOS #############################################   
-def insertBD (ip, user1 , password, api_value, ssh_value, ping_value, port_open, cont):
+def insertBD (ip, user1 , password, group, puerto, ping_status):
 
     db = mysql.connect(
-        host = "127.0.0.1",
+        host = "10.67.125.241",
         user = "root",
-        passwd = "",
+        passwd = "root",
         database ="network" #Con esto se valida que la base de datos existe, de no existir, arroja error
     )
 
     databases = db.cursor() #Mi puntero para ubicarme en la BD
 
     databases.execute("SHOW DATABASES")# preparate para ejecutar esta linea
-    #databases = databases.fetchall() #no tengo idea aun ;) hehe xd
+    #databases = databasesfetchall() #no tengo idea aun ;) hehe xd
     #print(databases)
 
     for x in databases:
         print(x)
 
-    query = "INSERT INTO devices (ip,user ,password ,api ,ssh ,ping, port_open, cont) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-    values = (ip, user1 , password, api_value, ssh_value, ping_value, port_open, cont)
+    query = "INSERT INTO devices (ip,user ,password ,grupo ,puerto,ping_status) VALUES (%s, %s, %s, %s, %s, %s)"
+    values = (ip, user1 , password, group, puerto, ping_status)
     databases.execute(query, values) #Ejecuta la tarea indicada
     db.commit() #Deja de forma permanente los cambios efectuados anteriormente, los guarda como los equipos UBNT
     print(databases.rowcount, "record inserted") #imprime cuantas filas fueron modificadas
 
+############################ VALIDAR USER GROUP #############################################   
+def user_group(ip,user1,password):
+   #API
+    try:
+        api=''
+        mikrotik=''
 
+        name=user1
+        del api
+        del mikrotik
+        api = connect(username=user1, password=password, host=ip)
+        #user = api.path('user')
+        mikrotik = api.path('user').select('name', 'group').where(Key('name') == name)
+        for item in mikrotik:
+           
+            group=item.get('group')
+            print('GROUP--->'+group)
+            return group
+            
+    except:
+        print ('')
+## SSH
+    try:
+        # SSH #
+        ip= ip
+        username= user1
+        password= password
+        print("Entra")
+        cmd = '/user print'
+
+        ssh=paramiko.SSHClient()
+        
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        
+        ssh.connect(ip,22,username,password)
+       
+        stdin,stdout,stderr=ssh.exec_command(cmd)
+        outlines=stdout.readlines()
+        grupo_ssh=''.join(outlines)
+        print(grupo_ssh)
+        grupo_ssh=grupo_ssh.split('full')
+        print(grupo_ssh)
+        print(type(grupo_ssh))
+        print(type(tupla))
+     
+        print('GROUP--->'+grupo_ssh)
+        return group
+            
+    except:
+        print ('') 
 
 ###############################  LOGIN  ######################################
 
-def login(ip):
+def login(ip, puerto,ping_status):
     try:
         user_password_list = []
         for i in ['admin','tfa','austro','jedis']:
@@ -185,29 +257,62 @@ def login(ip):
                 user_password_list.append((i,j))
                 
         
-        #print(user_password_list)
-
         for row in user_password_list:
             user1=row[0]
             password=row[1]
             print(user1+'-->'+password)
-            ping_value= check_host_ping(ip)
-            api_value= api1 (ip, user1, password)
-            ssh_value= ssh (ip, user1, password)
-            port_open1= port_open(ip)
-            cont=ping_value+api_value+ssh_value+port_open1
-            #telnet_value= telnet(ip, user1, password)
+
+            grupo =user_group(ip, 'xxx', 'xxx')
+
+            if grupo=='full':
+                insertBD (ip, user1 , password, grupo, puerto,ping_status)
+                break
+            
+                
+        # if acceso =='ok':
+        #     exit()
+    
+        # else:
+        #     return 
+
+            # ping_value= check_host_ping(ip)
+            # api_value= api1 (ip, user1, password)
+            # ssh_value= ssh (ip, user1, password)
+            
+            # cont=ping_value+api_value+ssh_value+port_open1
+            # #telnet_value= telnet(ip, user1, password)
             
 
-            if api_value == 1 or ssh_value ==1 or ping_value==1:
-                insertBD (ip, user1 , password, api_value, ssh_value, ping_value,port_open1 , cont)
-                
+            # if api_value == 1 or ssh_value ==1 or ping_value==1:
+            #     insertBD (ip, user1 , password, api_value, ssh_value, ping_value,port_open1 , cont)            
 
     except:
         print ('')
         return 0        
 ################################################################################
 
-if len(sys.argv) == 2:
-    ip=sys.argv[1]
-    login(ip)
+# if len(sys.argv) == 2:
+#     ip=sys.argv[1]
+#     login('2.3.4.5')
+ip='2.3.4.5'
+puertos=port_open(ip)
+ping_status=puertos[2]
+
+
+
+if puertos==(0,0,0):
+    print('API= OFF, SSH= OFF, PING= OFF')
+    insertBD (ip, "Sin Usuario" , "Sin clave", "Sin grupo", 0, ping_status)
+    exit()
+
+elif puertos==(0,0,1):
+    print ('PING-->OK')
+ 
+
+elif puertos[0]==1:
+    print('API--> OK')
+    login(ip,8728, ping_status)
+
+elif puertos[1]==1:
+    print('SSH--> OK')
+    login(ip,22, ping_status)

@@ -33,6 +33,8 @@ for row in mikrotik:
 print()
 print(prefix_list)
 
+# exit()
+
 input('continue?')
 
 print()
