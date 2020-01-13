@@ -224,7 +224,7 @@ def user_group(ip,user1,password):
         username= user1
         password= password
         print("Entra")
-        cmd = '/user print'
+        cmd = 'user print terse where name="'+user1+'"'
 
         ssh=paramiko.SSHClient()
         
@@ -234,9 +234,13 @@ def user_group(ip,user1,password):
        
         stdin,stdout,stderr=ssh.exec_command(cmd)
         outlines=stdout.readlines()
+
+        if 'group=full' in outlines:
+            #ddsadxsasd
+
         grupo_ssh=''.join(outlines)
         print(grupo_ssh)
-        grupo_ssh=grupo_ssh.split('full')
+        grupo_ssh=grupo_ssh.split(' ')
         print(grupo_ssh)
         print(type(grupo_ssh))
         print(type(tupla))
@@ -302,12 +306,12 @@ ping_status=puertos[2]
 
 if puertos==(0,0,0):
     print('API= OFF, SSH= OFF, PING= OFF')
-    insertBD (ip, "Sin Usuario" , "Sin clave", "Sin grupo", 0, ping_status)
     exit()
 
 elif puertos==(0,0,1):
     print ('PING-->OK')
- 
+    insertBD (ip, "Sin Usuario" , "Sin clave", "Sin grupo", 0, ping_status)
+    exit()
 
 elif puertos[0]==1:
     print('API--> OK')
