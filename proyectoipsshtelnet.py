@@ -28,7 +28,7 @@ def api1(ip, user, password):
                 host= ip
             )
 
-        #Extraccion de address list:
+        #Extraccion identity
         identity_api = api.path('system', 'identity')
         identity_api = list( identity_api)
         
@@ -172,7 +172,7 @@ def port_open(ip):
     return (api,ssh,ping_status)    
           
 ############################ LLENAR BASE DE DATOS #############################################   
-def insertBD (ip, user1 , password, group, puerto, ping_status):
+def insertBD (identity, ip, user1 , password, group, puerto, ping_status, var_ssh, var_ping):
 
     db = mysql.connect(
         host = "10.67.125.241",
@@ -190,8 +190,13 @@ def insertBD (ip, user1 , password, group, puerto, ping_status):
     for x in databases:
         print(x)
 
-    query = "INSERT INTO devices (ip,user ,password ,grupo ,puerto,ping_status) VALUES (%s, %s, %s, %s, %s, %s)"
-    values = (ip, user1 , password, group, puerto, ping_status)
+    query = 'DELETE FROM network.devices WHERE ip ="'+ip+'"'
+   # '/user print terse where name="'+username+'"'
+    databases.execute(query)
+    db.commit()
+
+    query = "INSERT INTO devices (identity, ip,user ,password ,grupo , puertoacceso, ping_status, ssh_status, api_status) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s)"
+    values = (identity, ip, user1 , password, group, puerto, ping_status, var_ssh, var_ping)
     databases.execute(query, values) #Ejecuta la tarea indicada
     db.commit() #Deja de forma permanente los cambios efectuados anteriormente, los guarda como los equipos UBNT
     print(databases.rowcount, "record inserted") #imprime cuantas filas fueron modificadas
@@ -207,13 +212,22 @@ def user_group(ip,user1,password):
         del api
         del mikrotik
         api = connect(username=user1, password=password, host=ip)
+
+         #Extraccion identity
+        identity_api = api.path('system', 'identity')
+        identity_api = list( identity_api)
+        
+        for  x in identity_api:
+            identity_api=x
+            identity_api= identity_api.get('name')
+
         #user = api.path('user')
         mikrotik = api.path('user').select('name', 'group').where(Key('name') == name)
         for item in mikrotik:
            
             group=item.get('group')
             print('GROUP--->'+group)
-            return group
+            return group, identity_api
             
     except:
         print ('')
@@ -221,33 +235,33 @@ def user_group(ip,user1,password):
     try:
         # SSH #
         ip= ip
-        username= user1
-        password= password
-        print("Entra")
-        cmd = 'user print terse where name="'+user1+'"'
+        username= 'xxx'#user1
+        password= 'xxx'#password
+        cmd = '/user print terse where name="'+username+'"'
+        cmd1 = '/system identity print'
 
         ssh=paramiko.SSHClient()
-        
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        
         ssh.connect(ip,22,username,password)
-       
+        
+        #GRUPO
         stdin,stdout,stderr=ssh.exec_command(cmd)
         outlines=stdout.readlines()
+        outlines=outlines[0]
 
+        #IDENTITY SSH
+        stdin,stdout,stderr=ssh.exec_command(cmd1)
+        identity_ssh=stdout.readlines()
+        identity_ssh=identity_ssh[0]
+        identity_ssh=identity_ssh.split('name: ')[1]
+        
+        print(identity_ssh)
         if 'group=full' in outlines:
-            #ddsadxsasd
+            print('Entra3')
+            group='full'
+            print('GROUP-->' +group)
+            return group, identity_ssh
 
-        grupo_ssh=''.join(outlines)
-        print(grupo_ssh)
-        grupo_ssh=grupo_ssh.split(' ')
-        print(grupo_ssh)
-        print(type(grupo_ssh))
-        print(type(tupla))
-     
-        print('GROUP--->'+grupo_ssh)
-        return group
-            
     except:
         print ('') 
 
@@ -266,29 +280,19 @@ def login(ip, puerto,ping_status):
             password=row[1]
             print(user1+'-->'+password)
 
-            grupo =user_group(ip, 'xxx', 'xxx')
+            grupo =user_group(ip, user1, password)
+            print (grupo)
+            print(type(grupo))
+            grupo=grupo[0]
+            #####TERMINAR 
+            print(grupo)
+            print(identity)
+
 
             if grupo=='full':
-                insertBD (ip, user1 , password, grupo, puerto,ping_status)
-                break
+                insertBD (identity, ip, user1 , password, grupo, puerto, ping_status, var_ssh, var_api)
             
-                
-        # if acceso =='ok':
-        #     exit()
-    
-        # else:
-        #     return 
-
-            # ping_value= check_host_ping(ip)
-            # api_value= api1 (ip, user1, password)
-            # ssh_value= ssh (ip, user1, password)
-            
-            # cont=ping_value+api_value+ssh_value+port_open1
-            # #telnet_value= telnet(ip, user1, password)
-            
-
-            # if api_value == 1 or ssh_value ==1 or ping_value==1:
-            #     insertBD (ip, user1 , password, api_value, ssh_value, ping_value,port_open1 , cont)            
+                break       
 
     except:
         print ('')
@@ -297,12 +301,15 @@ def login(ip, puerto,ping_status):
 
 # if len(sys.argv) == 2:
 #     ip=sys.argv[1]
-#     login('2.3.4.5')
+#     puertos=port_open('2.3.4.5')
+#     ping_status=puertos[2]
+# else:
+#     exit()
 ip='2.3.4.5'
 puertos=port_open(ip)
-ping_status=puertos[2]
-
-
+var_api=puertos[0]
+var_ssh=puertos[1]
+var_ping=puertos[2]
 
 if puertos==(0,0,0):
     print('API= OFF, SSH= OFF, PING= OFF')
@@ -310,13 +317,13 @@ if puertos==(0,0,0):
 
 elif puertos==(0,0,1):
     print ('PING-->OK')
-    insertBD (ip, "Sin Usuario" , "Sin clave", "Sin grupo", 0, ping_status)
+    insertBD (ip, "Sin Usuario" , "Sin clave", "Sin grupo", 0,var_ping,var_ssh,var_api)
     exit()
 
 elif puertos[0]==1:
     print('API--> OK')
-    login(ip,8728, ping_status)
+    login(ip,8728, var_ping)
 
 elif puertos[1]==1:
     print('SSH--> OK')
-    login(ip,22, ping_status)
+    login(ip,22, var_ping)
