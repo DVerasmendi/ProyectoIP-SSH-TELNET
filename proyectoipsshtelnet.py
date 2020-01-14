@@ -171,7 +171,7 @@ def port_open(ip):
 
     return (api,ssh,ping_status)    
           
-############################ LLENAR BASE DE DATOS #############################################   
+############################## LLENAR BASE DE DATOS #############################################   
 def insertBD (identity, ip, user1 , password, group, puerto, ping_status, var_ssh, var_ping):
 
     db = mysql.connect(
@@ -257,7 +257,6 @@ def user_group(ip,user1,password):
         
         print(identity_ssh)
         if 'group=full' in outlines:
-            print('Entra3')
             group='full'
             print('GROUP-->' +group)
             return group, identity_ssh
@@ -280,17 +279,14 @@ def login(ip, puerto,ping_status):
             password=row[1]
             print(user1+'-->'+password)
 
-            grupo =user_group(ip, user1, password)
-            print (grupo)
-            print(type(grupo))
-            grupo=grupo[0]
-            #####TERMINAR 
-            print(grupo)
-            print(identity)
+            grupo_identity_tupla =user_group(ip, user1, password)
+            grupo1=grupo_identity_tupla[0]
+            identity1=grupo_identity_tupla[1]
+            print('GROUP: '+ grupo1)
+            print('IDENTITY: '+ identity1)
 
-
-            if grupo=='full':
-                insertBD (identity, ip, user1 , password, grupo, puerto, ping_status, var_ssh, var_api)
+            if grupo1=='full':
+                insertBD (identity1, ip, user1 , password, grupo1, puerto, ping_status, var_ssh, var_api)
             
                 break       
 
@@ -317,7 +313,7 @@ if puertos==(0,0,0):
 
 elif puertos==(0,0,1):
     print ('PING-->OK')
-    insertBD (ip, "Sin Usuario" , "Sin clave", "Sin grupo", 0,var_ping,var_ssh,var_api)
+    insertBD ('Sin Identity',ip, "Sin Usuario" , "Sin clave", "Sin grupo", 0,var_ping,var_ssh,var_api)
     exit()
 
 elif puertos[0]==1:
