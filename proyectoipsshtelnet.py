@@ -110,9 +110,9 @@ def port_open(ip):
 def insertBD (identity, ip, user1 , password, group, puerto, ping_status, var_ssh, var_api):
 
     db = mysql.connect(
-        host = "10.67.125.241",
+        host = "127.0.0.1",
         user = "root",
-        passwd = "root",
+        passwd = "N0s31717!",
         database ="network" #Con esto se valida que la base de datos existe, de no existir, arroja error
     )
 
