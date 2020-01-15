@@ -253,7 +253,7 @@ if len(sys.argv) == 2:
 else:
     exit()
 #ip='2.3.4.5'
-puertos=port_open(ip)
+#puertos=port_open(ip)
 var_api=puertos[0]
 var_ssh=puertos[1]
 var_ping=puertos[2]
