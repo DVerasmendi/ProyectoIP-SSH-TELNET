@@ -172,7 +172,7 @@ def port_open(ip):
     return (api,ssh,ping_status)    
           
 ############################## LLENAR BASE DE DATOS #############################################   
-def insertBD (identity, ip, user1 , password, group, puerto, ping_status, var_ssh, var_ping):
+def insertBD (identity, ip, user1 , password, group, puerto, ping_status, var_ssh, var_api):
 
     db = mysql.connect(
         host = "10.67.125.241",
@@ -196,7 +196,7 @@ def insertBD (identity, ip, user1 , password, group, puerto, ping_status, var_ss
     db.commit()
 
     query = "INSERT INTO devices (identity, ip,user ,password ,grupo , puertoacceso, ping_status, ssh_status, api_status) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s)"
-    values = (identity, ip, user1 , password, group, puerto, ping_status, var_ssh, var_ping)
+    values = (identity, ip, user1 , password, group, puerto, ping_status, var_ssh, var_api)
     databases.execute(query, values) #Ejecuta la tarea indicada
     db.commit() #Deja de forma permanente los cambios efectuados anteriormente, los guarda como los equipos UBNT
     print(databases.rowcount, "record inserted") #imprime cuantas filas fueron modificadas
@@ -207,27 +207,30 @@ def user_group(ip,user1,password):
     try:
         api=''
         mikrotik=''
-
         name=user1
+        group=''
+        identity=''
+
         del api
         del mikrotik
         api = connect(username=user1, password=password, host=ip)
 
          #Extraccion identity
-        identity_api = api.path('system', 'identity')
-        identity_api = list( identity_api)
-        
-        for  x in identity_api:
-            identity_api=x
-            identity_api= identity_api.get('name')
+        mikrotik = api.path('system', 'identity')
+        for row in mikrotik:
+            identity=row.get('name')
 
-        #user = api.path('user')
+        del api
+        del mikrotik
+        api = connect(username=user1, password=password, host=ip)
         mikrotik = api.path('user').select('name', 'group').where(Key('name') == name)
-        for item in mikrotik:
-           
-            group=item.get('group')
+        for row in mikrotik:
+            group=row.get('group')
             print('GROUP--->'+group)
-            return group, identity_api
+            break
+        
+        if identity!='' and group!='':
+            return group, identity
             
     except:
         print ('')
@@ -235,8 +238,8 @@ def user_group(ip,user1,password):
     try:
         # SSH #
         ip= ip
-        username= 'xxx'#user1
-        password= 'xxx'#password
+        username= user1
+        password= password
         cmd = '/user print terse where name="'+username+'"'
         cmd1 = '/system identity print'
 
@@ -279,7 +282,7 @@ def login(ip, puerto,ping_status):
             password=row[1]
             print(user1+'-->'+password)
 
-            grupo_identity_tupla =user_group(ip, user1, password)
+            grupo_identity_tupla = user_group(ip, user1, password)
             grupo1=grupo_identity_tupla[0]
             identity1=grupo_identity_tupla[1]
             print('GROUP: '+ grupo1)
@@ -287,8 +290,8 @@ def login(ip, puerto,ping_status):
 
             if grupo1=='full':
                 insertBD (identity1, ip, user1 , password, grupo1, puerto, ping_status, var_ssh, var_api)
-            
                 break       
+                #exit()
 
     except:
         print ('')
