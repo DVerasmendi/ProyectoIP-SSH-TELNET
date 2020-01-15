@@ -274,3 +274,4 @@ elif puertos[0]==1:
 elif puertos[1]==1:
     print('SSH--> OK')
     login(ip,22, var_ping)
+
