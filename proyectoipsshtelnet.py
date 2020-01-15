@@ -176,9 +176,6 @@ def user_group(ip,user1,password):
         ip= ip
         username= user1
         password= password
-        print(ip)
-        print(username)
-        print(password)
         cmd = '/user print terse where name="'+username+'"'
         cmd1 = '/system identity print'
         
@@ -224,7 +221,6 @@ def login(ip, puerto,ping_status):
             print(user1+'-->'+password)
 
             grupo_identity_tupla = user_group(ip, user1, password)
-            print(grupo_identity_tupla)
 
             if grupo_identity_tupla is None:
                 print('No es posible conectar con este usuario y contraseña')
@@ -250,13 +246,13 @@ def login(ip, puerto,ping_status):
         return 0        
 ################################################################################
 
-# if len(sys.argv) == 2:
-#     ip=sys.argv[1]
-#     puertos=port_open('2.3.4.5')
-#     ping_status=puertos[2]
-# else:
-#     exit()
-ip='2.3.4.4'
+if len(sys.argv) == 2:
+    ip=sys.argv[1]
+    puertos=port_open(ip)
+    ping_status=puertos[2]
+else:
+    exit()
+#ip='2.3.4.5'
 puertos=port_open(ip)
 var_api=puertos[0]
 var_ssh=puertos[1]
