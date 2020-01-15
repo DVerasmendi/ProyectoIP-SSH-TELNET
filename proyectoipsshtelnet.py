@@ -16,71 +16,6 @@ import locale
 import sys
 import mysql.connector as mysql
 import socket
-
-############################# API ############################################    
-def api1(ip, user, password):
-
-    try:
-
-        api = connect(
-                username= user,
-                password= password,
-                host= ip
-            )
-
-        #Extraccion identity
-        identity_api = api.path('system', 'identity')
-        identity_api = list( identity_api)
-        
-        for  x in identity_api:
-            identity_api=x
-            print(identity_api)
-        
-        if identity_api !="":
-            print('API = OK')
-            return 1
-            
-        else:
-            print ('API = NOT OK')
-            return 0
-    except:
-        print ('API = NOT OK')
-        return 0
-
-##########################  SSH   ######################################       
-def ssh(ip, user, password):
-    
-    try:
-            
-        # MikroTik #
-        ip= ip
-        port=22
-        username= user
-        password= password
-
-        cmd = '/system identity print'
-
-        ssh=paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(ip,port,username,password)
-
-        stdin,stdout,stderr=ssh.exec_command(cmd)
-        outlines=stdout.readlines()
-        resp=''.join(outlines)
-        #print(resp)
-
-        if resp !="":
-            print('SSH = OK')
-            return 1
-
-        else:
-            print ('SSH = NOT OK')
-            return 0    
-            
-    except:
-        print ('SSH = NOT OK')
-        return 0
-
 ################################    TELNET   ######################################    
 def telnet(ip, user, password):
     
@@ -215,7 +150,7 @@ def user_group(ip,user1,password):
         del mikrotik
         api = connect(username=user1, password=password, host=ip)
 
-         #Extraccion identity
+        #Extraccion identity
         mikrotik = api.path('system', 'identity')
         for row in mikrotik:
             identity=row.get('name')
@@ -236,21 +171,27 @@ def user_group(ip,user1,password):
         print ('')
 ## SSH
     try:
+        
         # SSH #
         ip= ip
         username= user1
         password= password
+        print(ip)
+        print(username)
+        print(password)
         cmd = '/user print terse where name="'+username+'"'
         cmd1 = '/system identity print'
-
+        
         ssh=paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(ip,22,username,password)
-        
+     
+
         #GRUPO
         stdin,stdout,stderr=ssh.exec_command(cmd)
         outlines=stdout.readlines()
         outlines=outlines[0]
+        
 
         #IDENTITY SSH
         stdin,stdout,stderr=ssh.exec_command(cmd1)
@@ -272,8 +213,8 @@ def user_group(ip,user1,password):
 def login(ip, puerto,ping_status):
     try:
         user_password_list = []
-        for i in ['admin','tfa','austro','jedis']:
-            for j in ['N0s31717!','N0s31717','austro2018','austro2019','B9s31717!!.','B0s31818!!.','B8s31717!!.','austro','austro2018','austro2019']:
+        for i in ['admin','tfa','austro','jedis','xxx']:
+            for j in ['N0s31717!.','N0s31717','austro2018','austro2019','B9s31717!!.','B0s31818!!.','B8s31717!!.','austro','austro2018','austro2019','xxx','N0s31717!']:
                 user_password_list.append((i,j))
                 
         
@@ -283,15 +224,26 @@ def login(ip, puerto,ping_status):
             print(user1+'-->'+password)
 
             grupo_identity_tupla = user_group(ip, user1, password)
-            grupo1=grupo_identity_tupla[0]
-            identity1=grupo_identity_tupla[1]
-            print('GROUP: '+ grupo1)
-            print('IDENTITY: '+ identity1)
+            print(grupo_identity_tupla)
 
-            if grupo1=='full':
-                insertBD (identity1, ip, user1 , password, grupo1, puerto, ping_status, var_ssh, var_api)
-                break       
-                #exit()
+            if grupo_identity_tupla is None:
+                print('No es posible conectar con este usuario y contraseña')
+
+                if ping_status!='':
+                    insertBD ('Sin identity', ip, 'Ningun user funciona' , 'Ningun Password funciona', 'None', '--', ping_status, var_ssh, var_api)
+            else: 
+                grupo1=grupo_identity_tupla[0]
+                identity1=grupo_identity_tupla[1]
+                print('GROUP: '+ grupo1)
+                print('IDENTITY: '+ identity1)
+
+
+
+                if grupo1=='full':
+                    insertBD (identity1, ip, user1 , password, grupo1, puerto, ping_status, var_ssh, var_api)
+                    break       
+                    #exit()
+          
 
     except:
         print ('')
@@ -304,7 +256,7 @@ def login(ip, puerto,ping_status):
 #     ping_status=puertos[2]
 # else:
 #     exit()
-ip='2.3.4.5'
+ip='2.3.4.4'
 puertos=port_open(ip)
 var_api=puertos[0]
 var_ssh=puertos[1]
