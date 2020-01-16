@@ -45,17 +45,17 @@ def telnet(ip, user, password):
         name= tn.read_all().split(b'\r\r\n\r\r\r\r')[0].split(b'\r\n\r')[1]
 
         if name !="":
-            print('TELNET = OK')
+            #print('TELNET = OK')
             return 1
 
         else:
-            print ('TELNET = NOT OK')
+            #print ('TELNET = NOT OK')
             return 0  
 
         tn.close()
 
     except:
-        print ('TELNET = NOT OK')
+        #print ('TELNET = NOT OK')
         return 0
    
 ################################   Función para validar puerto abierto   ######################
@@ -100,7 +100,7 @@ def port_open(ip):
         result = sock.connect_ex((ip,8292))
 
         if result == 0:
-            #print("Wimbox-8292 is open")
+           # print("Wimbox-8292 is open")
             port_8292=1
         else:
             #print("Wimbox-8292 is close")
@@ -161,17 +161,15 @@ def port_open(ip):
           
 ############################## LLENAR BASE DE DATOS #############################################   
 def insertBD (identity, ip, user1 , password, version, modelo, group, puerto, ping_status, var_ssh, var_api, var_port_8291, var_port_8299, var_port_8292):
-
     db = mysql.connect(
         host = "160.20.188.232",
         user = "remote",
         passwd = "M4ndr4g0r4!",
         database ="network" #Con esto se valida que la base de datos existe, de no existir, arroja error
     )
-
     databases = db.cursor() #Mi puntero para ubicarme en la BD
 
-    databases.execute("SHOW DATABASES")# preparate para ejecutar esta linea
+    #databases.execute("SHOW DATABASES")# preparate para ejecutar esta linea
     #databases = databasesfetchall() #no tengo idea aun ;) hehe xd
     #print(databases)
 
@@ -184,7 +182,7 @@ def insertBD (identity, ip, user1 , password, version, modelo, group, puerto, pi
     db.commit()
 
     print(ip,identity,sep=': ')
-
+    
     query = "INSERT INTO devices (identity, ip,user ,password, version, modelo ,grupo, puertoacceso, ping_status, ssh_status, api_status, var_port_8291, var_port_8299, var_port_8292) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
     values = (identity, ip, user1 , password, version, modelo, group, puerto, ping_status, var_ssh, var_api, var_port_8291, var_port_8299, var_port_8292)
     databases.execute(query, values) #Ejecuta la tarea indicada
@@ -200,6 +198,8 @@ def user_group(ip,user1,password):
         name=user1
         group=''
         identity=''
+        version=''
+        model=''
 
         #Extraccion identity
         del api
@@ -237,27 +237,29 @@ def user_group(ip,user1,password):
             #print('GROUP--->'+group)
             break
         
-        if identity!='' and group!='' and version!='' and model!='':
+        if identity!='' and group!='':
             return group, identity, version, model
             
     except:
-        # SSH  para encender API#
-        ip= ip
-        username= user1
-        password= password
-        cmd = '/ip service enable [find where name=api]'
+        try:
+            # SSH  para encender API#
+            ip= ip
+            username= user1
+            password= password
+            cmd3 = '/ip service enable [find where name=api]'
+            
+            ssh=paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(ip,22,username,password)
         
-        ssh=paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(ip,22,username,password)
-     
-        #Encendiendo API
-        stdin,stdout,stderr=ssh.exec_command(cmd)
-        api_on=stdout.readlines()
+            #Encendiendo API
+            stdin,stdout,stderr=ssh.exec_command(cmd3)
+            api_on=stdout.readlines()
+        except:
+            print ('')
 
 ## SSH
     try:
-        
         # SSH #
         ip= ip
         username= user1
@@ -270,12 +272,11 @@ def user_group(ip,user1,password):
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(ip,22,username,password)
      
-
         #GRUPO
         stdin,stdout,stderr=ssh.exec_command(cmd)
         outlines=stdout.readlines()
         outlines=outlines[0]
-        
+        print(outlines)
 
         #IDENTITY SSH
         stdin,stdout,stderr=ssh.exec_command(cmd1)
@@ -299,15 +300,15 @@ def user_group(ip,user1,password):
             return group, identity_ssh, version_ssh, modelo_ssh
 
     except:
-        print ('**** ERROR SSH ****')
+        print ('')
 
 ###############################  LOGIN  ######################################
 
-def login(ip, puerto,ping_status):
+def login(ip, puerto, ping_status):
     try:
         user_password_list = []
-        for i in ['admin','tfa','austro','jedis']:#'xxx',
-            for j in ['N0s31717!','N0s31717','austro2018','austro2019','B9s31717!!.','B0s31818!!.','B8s31717!!.','austro']:
+        for i in ['admin','xxx','tfa','austro','jedis']:#'xxx',
+            for j in ['N0s31717!','xxx','N0s31717!','N0s31717','austro2018','austro2019','B9s31717!!.','B0s31818!!.','B8s31717!!.','austro']:
                 user_password_list.append((i,j))
                 
         
@@ -317,6 +318,7 @@ def login(ip, puerto,ping_status):
             #print(user1+'-->'+password)
 
             grupo_identity_tupla = user_group(ip, user1, password)
+            #print(grupo_identity_tupla)
 
             if grupo_identity_tupla is None:
                 print('No es posible conectar con este usuario y contraseña')
@@ -328,10 +330,12 @@ def login(ip, puerto,ping_status):
                 identity1=grupo_identity_tupla[1]
                 version=grupo_identity_tupla[2]
                 modelo=grupo_identity_tupla[3]
-                # print('GROUP: '+ grupo1)
-                # print('IDENTITY: '+ identity1)
-                # print('VERSION: '+ version)
-                # print('MODELO: '+ modelo)
+                print ('IP: '+ip)
+                print ('PASSWORD: '+password)
+                print('IDENTITY: '+ identity1)
+                print('GROUP: '+ grupo1)
+                print('VERSION: '+ version)
+                print('MODELO: '+ modelo)
 
 
 
@@ -349,14 +353,15 @@ def login(ip, puerto,ping_status):
         return 0        
 ################################################################################
 
-# if len(sys.argv) == 2:
-#     ip=sys.argv[1]
-#     puertos=port_open(ip)
-#     ping_status=puertos[2]
-# else:
-#     exit()
-ip='10.0.4.2'
-puertos=port_open(ip)
+if len(sys.argv) == 2:
+    ip=sys.argv[1]
+    puertos=port_open(ip)
+    ping_status=puertos[2]
+else:
+    exit()
+#ip='2.3.4.4'
+#puertos=port_open(ip)
+
 var_api=puertos[0]
 var_ssh=puertos[1]
 var_ping=puertos[2]
@@ -364,20 +369,19 @@ var_port_8291=puertos[3]
 var_port_8299=puertos[4]
 var_port_8292=puertos[5] 
 
-if puertos==(0,0,0):
-    #print('API= OFF, SSH= OFF, PING= OFF')
+if puertos==(0,0,0,0,0,0):
+    print('API= OFF, SSH= OFF, PING= OFF, 8291= OFF, 8299= OFF, 8292= OFF')
     exit()
 
 elif puertos==(0,0,1):
-    #print ('PING-->OK')
-    insertBD ('Sin Identity',ip, "Sin Usuario" , "Sin clave","NoVersion","NoModel", "Sin grupo", 0, var_ping, var_ssh, var_api, var_port_8291, var_port_8299, var_port_8292)
+    print ('PING-->OK')
+    insertBD ('Sin Identity', ip, "Sin Usuario" , "Sin clave","NoVersion","NoModel", "Sin grupo", 0, var_ping, var_ssh, var_api, var_port_8291, var_port_8299, var_port_8292)
     exit()
 
 elif puertos[0]==1:
-    #print('API--> OK')
+    print('API--> OK')
     login(ip,8728, var_ping)
 
 elif puertos[1]==1:
-    #print('SSH--> OK')
-    login(ip,22, var_ping)
-
+    print('SSH--> OK')
+    login(ip,22 , var_ping)
