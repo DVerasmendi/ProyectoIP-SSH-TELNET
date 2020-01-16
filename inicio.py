@@ -19,7 +19,6 @@ api = connect(username='476cbn983f675mvf0sm', password='476cbn983f675mvf0sm', ho
 mikrotik = api.path('ip', 'route', '').select('.id', 'dst-address').where(Key('received-from') == 'puq-scl-17')
 for row in mikrotik:
     prefix = row.get('dst-address')
-
     if prefix.split('.')[0]!='192':
         prefix_list.append(prefix)
         print('puq: ',prefix,sep='')
@@ -29,7 +28,6 @@ api = connect(username='476cbn983f675mvf0sm', password='476cbn983f675mvf0sm', ho
 mikrotik = api.path('ip', 'route', '').select('.id', 'dst-address').where(Key('received-from') == 'vc-scl-17')
 for row in mikrotik:
     prefix = row.get('dst-address')
-
     if prefix.split('.')[0]!='192':
         prefix_list.append(prefix)
         print('nat: ',prefix,sep='')
@@ -48,9 +46,8 @@ for prefix in prefix_list:
     for ip in ipv4_prefix:
         print(ip)
         pid = subprocess.Popen([sys.executable, "proyectoipsshtelnet.py", str(ip)])
-        #time.sleep(10)
+        time.sleep(10)
         counter=counter+1
-        #input('continue?')
     time.sleep(60)
 print()
 print(counter)

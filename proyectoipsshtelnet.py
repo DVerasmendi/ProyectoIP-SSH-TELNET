@@ -163,15 +163,10 @@ def port_open(ip):
 def insertBD (identity, ip, user1 , password, version, modelo, group, puerto, ping_status, var_ssh, var_api, var_port_8291, var_port_8299, var_port_8292):
 
     db = mysql.connect(
-        # host = "127.0.0.1",
-        # user = "root",
-        # passwd = "N0s31717!",
-        # database ="network" #Con esto se valida que la base de datos existe, de no existir, arroja error
-        # host = "10.67.125.241",
-        # user = "root",
-        # passwd = "root",
-        # database ="network" #Con esto se valida que la base de datos existe, de no existir, arroja error
-
+        host = "160.20.188.232",
+        user = "remote",
+        passwd = "M4ndr4g0r4!",
+        database ="network" #Con esto se valida que la base de datos existe, de no existir, arroja error
     )
 
     databases = db.cursor() #Mi puntero para ubicarme en la BD
