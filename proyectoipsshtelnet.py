@@ -305,13 +305,13 @@ def user_group(ip,user1,password):
 ###############################  LOGIN  ######################################
 
 def login(ip, puerto, ping_status):
+
     try:
         user_password_list = []
-        for i in ['admin','xxx','tfa','austro','jedis']:#'xxx',
-            for j in ['N0s31717!','xxx','N0s31717!','N0s31717','austro2018','austro2019','B9s31717!!.','B0s31818!!.','B8s31717!!.','austro']:
+        for i in ['admin','tfa','austro','jedis']:#'xxx',
+            for j in ['N0s31717','N0s31717!','austro2018','austro2019','B9s31717!!.','B0s31818!!.','B8s31717!!.','austro']:
                 user_password_list.append((i,j))
-                
-        
+            
         for row in user_password_list:
             user1=row[0]
             password=row[1]
@@ -383,5 +383,6 @@ elif puertos[0]==1:
     login(ip,8728, var_ping)
 
 elif puertos[1]==1:
+    print(44444444)
     print('SSH--> OK')
     login(ip,22 , var_ping)
