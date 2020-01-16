@@ -175,19 +175,21 @@ def insertBD (identity, ip, user1 , password, version, modelo, group, puerto, pi
     #databases = databasesfetchall() #no tengo idea aun ;) hehe xd
     #print(databases)
 
-    for x in databases:
-        print(x)
+    # for x in databases:
+    #     print(x)
 
     query = 'DELETE FROM network.devices WHERE ip ="'+ip+'"'
    # '/user print terse where name="'+username+'"'
     databases.execute(query)
     db.commit()
 
+    print(ip,identity,sep=': ')
+
     query = "INSERT INTO devices (identity, ip,user ,password, version, modelo ,grupo, puertoacceso, ping_status, ssh_status, api_status, var_port_8291, var_port_8299, var_port_8292) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
     values = (identity, ip, user1 , password, version, modelo, group, puerto, ping_status, var_ssh, var_api, var_port_8291, var_port_8299, var_port_8292)
     databases.execute(query, values) #Ejecuta la tarea indicada
     db.commit() #Deja de forma permanente los cambios efectuados anteriormente, los guarda como los equipos UBNT
-    print(databases.rowcount, "record inserted") #imprime cuantas filas fueron modificadas
+    #print(databases.rowcount, "record inserted") #imprime cuantas filas fueron modificadas
 
 ############################ VALIDAR USER GROUP #############################################   
 def user_group(ip,user1,password):
@@ -297,7 +299,7 @@ def user_group(ip,user1,password):
             return group, identity_ssh, version_ssh, modelo_ssh
 
     except:
-        print ('') 
+        print ('**** ERROR SSH ****')
 
 ###############################  LOGIN  ######################################
 
@@ -340,17 +342,20 @@ def login(ip, puerto,ping_status):
           
 
     except:
-        print ('')
+        print('*****',ip,sep=': ')
+        print ('**** ERROR LOGIN ****')
+        e = sys.exc_info()[0]
+        print( "<p>Error: %s</p>" % e )
         return 0        
 ################################################################################
 
-if len(sys.argv) == 2:
-    ip=sys.argv[1]
-    puertos=port_open(ip)
-    ping_status=puertos[2]
-else:
-    exit()
-#ip='2.3.4.5'
+# if len(sys.argv) == 2:
+#     ip=sys.argv[1]
+#     puertos=port_open(ip)
+#     ping_status=puertos[2]
+# else:
+#     exit()
+ip='10.0.4.2'
 puertos=port_open(ip)
 var_api=puertos[0]
 var_ssh=puertos[1]
