@@ -46,7 +46,7 @@ for prefix in prefix_list:
     for ip in ipv4_prefix:
         print(ip)
         pid = subprocess.Popen([sys.executable, "proyectoipsshtelnet.py", str(ip)])
-        time.sleep(10)
+        #time.sleep(10)
         counter=counter+1
     time.sleep(60)
 print()
