@@ -19,16 +19,20 @@ api = connect(username='476cbn983f675mvf0sm', password='476cbn983f675mvf0sm', ho
 mikrotik = api.path('ip', 'route', '').select('.id', 'dst-address').where(Key('received-from') == 'puq-scl-17')
 for row in mikrotik:
     prefix = row.get('dst-address')
-    prefix_list.append(prefix)
-    print('puq: ',prefix,sep='')
+
+    if prefix.split('.')[0]!='192':
+        prefix_list.append(prefix)
+        print('puq: ',prefix,sep='')
 
 del api
 api = connect(username='476cbn983f675mvf0sm', password='476cbn983f675mvf0sm', host='160.20.188.1')
 mikrotik = api.path('ip', 'route', '').select('.id', 'dst-address').where(Key('received-from') == 'vc-scl-17')
 for row in mikrotik:
     prefix = row.get('dst-address')
-    prefix_list.append(prefix)
-    print('nat: ',prefix,sep='')
+
+    if prefix.split('.')[0]!='192':
+        prefix_list.append(prefix)
+        print('nat: ',prefix,sep='')
 
 print()
 print(prefix_list)
