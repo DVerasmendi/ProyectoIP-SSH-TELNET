@@ -66,15 +66,15 @@ def port_open(ip):
         result = sock.connect_ex((ip,8291))
 
         if result == 0:
-            print("Wimbox-8291 is open")
+            #print("Wimbox-8291 is open")
             port_8291=1
         else:
-            print("Wimbox-8291 is close")
+            #print("Wimbox-8291 is close")
             sock.close()
             port_8291=0
 
     except:
-        print ('Puerto = NOT OK')
+        #print ('Puerto = NOT OK')
         port_8291=0
 
     # Validar puerto 8299
@@ -83,15 +83,15 @@ def port_open(ip):
         result = sock.connect_ex((ip,8299))
 
         if result == 0:
-            print("Wimbox-8299 is open")
+            #print("Wimbox-8299 is open")
             port_8299=1
         else:
-            print("Wimbox-8299 is close")
+            #print("Wimbox-8299 is close")
             sock.close()
             port_8299=0
 
     except:
-        print ('Puerto = NOT OK')
+        #print ('Puerto = NOT OK')
         port_8299=0
 
     # Validar puerto 8292
@@ -100,15 +100,15 @@ def port_open(ip):
         result = sock.connect_ex((ip,8292))
 
         if result == 0:
-            print("Wimbox-8292 is open")
+            #print("Wimbox-8292 is open")
             port_8292=1
         else:
-            print("Wimbox-8292 is close")
+            #print("Wimbox-8292 is close")
             sock.close()
             port_8292=0
 
     except:
-        print ('Puerto = NOT OK')
+        #print ('Puerto = NOT OK')
         port_8292=0
 
 
@@ -118,15 +118,15 @@ def port_open(ip):
         result = sock.connect_ex((ip,8728))
 
         if result == 0:
-            print("API is open")
+            #print("API is open")
             api=1
         else:
-            print("API is close")
+            #print("API is close")
             sock.close()
             api=0
 
     except:
-        print ('Puerto = NOT OK')
+        #print ('Puerto = NOT OK')
         api=0
 
     try:
@@ -134,27 +134,27 @@ def port_open(ip):
         result = sock.connect_ex((ip,22))
 
         if result == 0:
-            print("SSH is open")
+            #print("SSH is open")
             ssh=1
         else:
-            print("SSH is close")
+            #print("SSH is close")
             sock.close()
             ssh=0
 
     except:
-        print ('Puerto = NOT OK')
+        #print ('Puerto = NOT OK')
         ssh=0  
 
     try:
         ping_response = ping(ip)
         if isinstance(ping_response, float):
-            print("PING--->UP")
+            #print("PING--->UP")
             ping_status=1
         else:
-            print("PING--->DOWN")
+            #print("PING--->DOWN")
             ping_status=0
     except:
-        print ('PING = NOT OK')
+        #print ('PING = NOT OK')
         ping_status=0
 
     return (api,ssh,ping_status,port_8291, port_8299, port_8292)    
@@ -312,7 +312,7 @@ def login(ip, puerto,ping_status):
         for row in user_password_list:
             user1=row[0]
             password=row[1]
-            print(user1+'-->'+password)
+            #print(user1+'-->'+password)
 
             grupo_identity_tupla = user_group(ip, user1, password)
 
@@ -326,10 +326,10 @@ def login(ip, puerto,ping_status):
                 identity1=grupo_identity_tupla[1]
                 version=grupo_identity_tupla[2]
                 modelo=grupo_identity_tupla[3]
-                print('GROUP: '+ grupo1)
-                print('IDENTITY: '+ identity1)
-                print('VERSION: '+ version)
-                print('MODELO: '+ modelo)
+                # print('GROUP: '+ grupo1)
+                # print('IDENTITY: '+ identity1)
+                # print('VERSION: '+ version)
+                # print('MODELO: '+ modelo)
 
 
 
@@ -344,13 +344,13 @@ def login(ip, puerto,ping_status):
         return 0        
 ################################################################################
 
-# if len(sys.argv) == 2:
-#     ip=sys.argv[1]
-#     puertos=port_open(ip)
-#     ping_status=puertos[2]
-# else:
-#     exit()
-ip='2.3.4.5'
+if len(sys.argv) == 2:
+    ip=sys.argv[1]
+    puertos=port_open(ip)
+    ping_status=puertos[2]
+else:
+    exit()
+#ip='2.3.4.5'
 puertos=port_open(ip)
 var_api=puertos[0]
 var_ssh=puertos[1]
