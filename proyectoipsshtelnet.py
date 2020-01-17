@@ -403,29 +403,265 @@ def login (ip, api, ssh, ping, port8291, port8299, port8292):
 # else:
 #     exit()
 
-ip='10.200.54.2'#'2.3.4.5'
+
+
+
+
+
+
+
+
+
+
+
+
+
+#####################################################
+
+def get_data_from_api(user,password,ip,method_type):
+
+    try:
+            
+        api=''
+        mikrotik=''
+
+        identity=''
+        group=''
+        version=''
+        model=''
+
+        del api
+        del mikrotik
+        api = connect(username=user, password=password, host=ip,login_method=method_type)
+        mikrotik = api.path('system', 'identity')
+        for row in mikrotik:
+            identity=row.get('name')
+
+        del api
+        del mikrotik
+        api = connect(username=user, password=password, host=ip,login_method=method_type)
+        mikrotik = api.path('user').select('name', 'group').where(Key('name') == user)
+        for row in mikrotik:
+            group=row.get('group')
+
+        del api
+        del mikrotik
+        api = connect(username=user, password=password, host=ip,login_method=method_type)
+        mikrotik = api.path('system', 'resource')
+        for row in mikrotik:
+            version=row.get('version')
+
+        del api
+        del mikrotik
+        api = connect(username=user, password=password, host=ip,login_method=method_type)
+        mikrotik = api.path('system', 'routerboard')
+        for row in mikrotik:
+            model=row.get('model')
+
+        result=(ip,user,password,identity,group,version,model,'8728')
+        return result
+
+    except:
+        e = sys.exc_info()[0]
+        print( "<p>** ERROR **: %s</p>" % e )
+        return 'error'
+
+def api_request(ip):
+
+    for row in user_password_list:
+
+        user=row[0].strip()
+        password=row[1].strip()
+
+        print('testing: '+user + '@' +password)
+
+        result=get_data_from_api(user,password,ip,plain)
+        if result=='error':
+            result=get_data_from_api(user,password,ip,token)
+
+        # ('10.200.54.2', 'admin', 'N0s31717', 'RB962 VILLASAUCE', 'full', '6.38.7 (bugfix)', 'RouterBOARD 962UiGS-5HacT2HnT')
+        if result[4]=='full':
+            return result
+
+    return ''
+
+def get_data_from_ssh(user,password,ip):
+
+    try:
+            
+        cmd0 = '/user print terse where name="'+user+'"'
+        cmd1 = '/system identity print without-paging'
+        cmd2 = '/system resource print without-paging'
+        cmd3 = '/ip service enable [find where name=api]'
+        cmd4 = '/system routerboard print without-paging'
+
+        ssh=paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(ip,22,user,password)
+
+        #Encendiendo API
+        stdin,stdout,stderr=ssh.exec_command(cmd3)
+        api_on=stdout.readlines()
+        
+        #GRUPO
+        stdin,stdout,stderr=ssh.exec_command(cmd0)
+        outlines=stdout.readlines()
+        outlines=outlines[0]
+        if 'group=full' in outlines:
+            group_ssh='full'
+        else:
+            group_ssh=''
+
+        #IDENTITY SSH
+        stdin,stdout,stderr=ssh.exec_command(cmd1)
+        identity_ssh=stdout.readlines()
+        identity_ssh=identity_ssh[0]
+        identity_ssh=identity_ssh.split('name: ')[1].strip()
+
+        #VERSION
+        stdin,stdout,stderr=ssh.exec_command(cmd2)
+        version_ssh=stdout.readlines()
+        for row in version_ssh:
+            if 'version' in row:
+                version_ssh=row.split('version:')[1].strip()
+                break
+
+        #Modelo
+        stdin,stdout,stderr=ssh.exec_command(cmd4)
+        modelo_ssh=stdout.readlines()
+        for row in modelo_ssh:
+            if 'model' in row:
+                modelo_ssh=row.split('model:')[1].strip()
+                break
+
+        result = (ip,user,password,group_ssh,identity_ssh,version_ssh,modelo_ssh,'22')
+        return result
+
+    except:
+        e = sys.exc_info()[0]
+        print( "<p>** ERROR **: %s</p>" % e )
+        return 'error'
+
+def ssh_request(ip):
+
+    for row in user_password_list:
+
+        user=row[0].strip()
+        password=row[1].strip()
+
+        result=''
+
+        print('testing: '+user + '@' +password)
+        result=get_data_from_ssh(user,password,ip)
+        print(result)
+
+        if result!='error' and 'full' in result:
+            return result
+        
+    return ''
+
+def to_MySQL (status,puertos):
+
+    # ('10.200.54.2', 'admin', 'N0s31717', 'RB962 VILLASAUCE', 'full', '6.38.7 (bugfix)', 'RouterBOARD 962UiGS-5HacT2HnT', '8728')
+    # (1, 1, 1, 1, 0, 0)
+
+    identity=status[3]
+    ip=status[0]
+    user=status[1]
+    password=status[2]
+    version=status[5]
+    modelo=status[6]
+    group=status[4]
+    puerto=status[7]
+    ping_status=puertos[2]
+    ssh=puertos[1]
+    api=puertos[0]
+    port8291=puertos[3]
+    port8299=puertos[4]
+    port8292=puertos[5]
+
+    # sys.exit()
+
+    db = mysql.connect(host = "160.20.188.232",user = "remote",passwd = "M4ndr4g0r4!",database ="network")
+    databases = db.cursor()
+
+    query = 'DELETE FROM network.devices WHERE ip ="'+ip+'"'
+
+    databases.execute(query)
+    db.commit()
+
+    print(ip,identity,sep=': ')
+    
+    query = "INSERT INTO devices (identity, ip,user ,password, version, modelo ,grupo, puertoacceso, ping_status, ssh_status, api_status, var_port_8291, var_port_8299, var_port_8292) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+    values = (identity, ip, user , password, version, modelo, group, puerto, ping_status, ssh, api, port8291, port8299, port8292)
+    databases.execute(query, values) 
+    db.commit()
+
+ip='10.200.54.2'
+
 puertos=port_open(ip)
-#Port_open Me retorna  api,ssh, ping, 8291,8299,8292
-print(puertos)
+print(ip,puertos,sep=': ')
+
 api=puertos[0]
 ssh=puertos[1]
 ping=puertos[2]
 port8291=puertos[3]
 port8299=puertos[4]
-port8292=puertos[5] 
+port8292=puertos[5]
 
-if api==1:
-    print('API--> OK')
-    login=login(ip, api, ssh, ping, port8291, port8299, port8292)
-  
+user_password_list = []
+for i in ['admin','tfa','austro','jedis']:
+    for j in ['N0s31717a','N0s31717!','N0s31717','austro2018','austro2019','B9s31717!!.','B0s31818!!.','B8s31717!!.','austro']:
+        user_password_list.append((i,j))
+
+status=''
+
+if puertos==(0, 0, 0, 0, 0, 0):
+    sys.exit()
+elif (ssh==0 and api==0) and (ping==1 or port8291==1 or port8299==1 or port8292==1):
+    # Insertar en MySQL
+    sys.exit()
 else:
-    if ssh==1:
-        print('SSH--> OK')
-        login(ip, api, ssh, ping, port8291, port8299, port8292)
+    if api==1 and ssh==1:
+        status=api_request(ip)
+        if status!='':
+            to_MySQL(status,puertos)
+            print(status)
+            sys.exit()
+        else:
+            status=ssh_request(ip)
+            if status!='':
+                # Insertar en MySQL
+                sys.exit()
+            else:
+                # Insertar en MySQL
+                sys.exit()
+    elif api==1:
+        status=api_request(ip)
+        # Insertar en MySQL
+        sys.exit()
+    elif ssh==1:
+        status=ssh_request(ip)
+        # Insertar en MySQL
+        sys.exit()
+    else:
+        # Insertar en MySQL
+        sys.exit()
 
-    if ssh==0 and ping==1:
-        print ('PING-->OK')
-        insertBD ('Sin Identity', ip, "Sin Usuario" , "Sin clave","NoVersion","NoModel", "Sin grupo",'--', ping, ssh, api, port8291, port8299, port8292)
-    elif ping==0:
-        print('API= OFF, SSH= OFF, PING= OFF, 8291= OFF, 8299= OFF, 8292= OFF')
-        exit()
+
+
+
+
+
+
+
+
+if ssh==1:
+    print('SSH--> OK')
+    login(ip, api, ssh, ping, port8291, port8299, port8292)
+if ssh==0 and ping==1:
+    print ('PING-->OK')
+    insertBD ('Sin Identity', ip, "Sin Usuario" , "Sin clave","NoVersion","NoModel", "Sin grupo",'--', ping, ssh, api, port8291, port8299, port8292)
+elif ping==0:
+    print('API  = OFF, SSH= OFF, PING= OFF, 8291= OFF, 8299= OFF, 8292= OFF')
+    exit()
