@@ -262,6 +262,7 @@ try:
 
     print(' ++ '+ip)
     puertos = check_port(ip)
+    # To MySQL Table 2
     print(ip, puertos, sep=' ==> ')
 
     #[ping, 8728, 22, 8291, 8299, 8292]
