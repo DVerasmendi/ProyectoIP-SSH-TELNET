@@ -22,6 +22,12 @@ for row in mikrotik:
     if prefix.split('.')[0]!='192':
         prefix_list.append(prefix)
         print('puq: ',prefix,sep='')
+    if '/23' in prefix:
+        print(prefix)
+        input('continue?')
+    if '/22' in prefix:
+        print(prefix)
+        input('continue?')
 
 del api
 api = connect(username='476cbn983f675mvf0sm', password='476cbn983f675mvf0sm', host='160.20.188.1')
@@ -31,6 +37,13 @@ for row in mikrotik:
     if prefix.split('.')[0]!='192':
         prefix_list.append(prefix)
         print('nat: ',prefix,sep='')
+    if '/23' in prefix:
+        print(prefix)
+        input('continue?')
+    if '/22' in prefix:
+        print(prefix)
+        input('continue?')
+
 
 print()
 print(prefix_list)
@@ -45,10 +58,10 @@ for prefix in prefix_list:
     ipv4_prefix=IPNetwork(prefix)
     for ip in ipv4_prefix:
         print(ip)
-        pid = subprocess.Popen([sys.executable, "proyectoipsshtelnet.py", str(ip)])
+        pid = subprocess.Popen([sys.executable, "search.py", str(ip)])
         #time.sleep(10)
         counter=counter+1
-    time.sleep(60)
+    time.sleep(120)
 print()
 print(counter)
 
