@@ -24,16 +24,16 @@ def port_open(ip):
         result = sock.connect_ex((ip,8728))
 
         if result == 0:
-            print("API is open")
+            #print("API is open")
             sock.close()
             api=1
         else:
-            print("API is close")
+            #print("API is close")
             sock.close()
             api=0
 
     except:
-        print ('API is close 2')
+        #print ('API is close 2')
         sock.close()
         api=0
 
@@ -43,28 +43,28 @@ def port_open(ip):
         result = sock.connect_ex((ip,22))
 
         if result == 0:
-            print("SSH is open")
+            #print("SSH is open")
             ssh=1
         else:
-            print("SSH is close")
+            #print("SSH is close")
             sock.close()
             ssh=0
 
     except:
-        print ('SSH is close 2')
+        #print ('SSH is close 2')
         ssh=0  
 
     try:
     #Valida PING
         ping_response = ping(ip)
         if isinstance(ping_response, float):
-            print("PING--->UP")
+            #print("PING--->UP")
             ping_value=1
         else:
-            print("PING--->DOWN")
+            #print("PING--->DOWN")
             ping_value=0
     except:
-        print ('PING--->DOWN 2')
+        #print ('PING--->DOWN 2')
         ping_value=0
 
     # Validar puerto 8291
@@ -73,16 +73,16 @@ def port_open(ip):
         result = sock.connect_ex((ip,8291))
 
         if result == 0:
-            print("Wimbox-8291 is open")
+            #print("Wimbox-8291 is open")
             sock.close()
             port8291=1
         else:
-            print("Wimbox-8291 is close")
+            #print("Wimbox-8291 is close")
             sock.close()
             port8291=0
 
     except:
-        print ('Wimbox-8291 is close 2')
+        #print ('Wimbox-8291 is close 2')
         sock.close()
         port8291=0
 
@@ -92,16 +92,16 @@ def port_open(ip):
         result = sock.connect_ex((ip,8299))
 
         if result == 0:
-            print("Wimbox-8299 is open")
+            #print("Wimbox-8299 is open")
             sock.close()
             port8299=1
         else:
-            print("Wimbox-8299 is close")
+            #print("Wimbox-8299 is close")
             sock.close()
             port8299=0
 
     except:
-        print ('Wimbox-8299 is close 2')
+        #print ('Wimbox-8299 is close 2')
         sock.close()
         port8299=0
 
@@ -111,16 +111,16 @@ def port_open(ip):
         result = sock.connect_ex((ip,8292))
 
         if result == 0:
-            print("Wimbox-8292 is open")
+            #print("Wimbox-8292 is open")
             sock.close()
             port8292=1
         else:
-            print("Wimbox-8292 is close")
+            #print("Wimbox-8292 is close")
             sock.close()
             port8292=0
 
     except:
-        print ('Wimbox-8292 is close 2')
+        #print ('Wimbox-8292 is close 2')
         sock.close()
         port8292=0
 
@@ -397,11 +397,7 @@ def login (ip, api, ssh, ping, port8291, port8299, port8292):
         return 0        
 ################################################################################
 
-# if len(sys.argv) == 2:
-#     ip=sys.argv[1]
-#     puertos=port_open(ip)
-# else:
-#     exit()
+
 
 
 
@@ -458,32 +454,15 @@ def get_data_from_api(user,password,ip,method_type):
         for row in mikrotik:
             model=row.get('model')
 
+        if group!='' and group!='full':
+            to_MySQL((ip,user,password,group_ssh,identity_ssh,version_ssh,modelo_ssh,'8728'),puertos)
+
         result=(ip,user,password,identity,group,version,model,'8728')
         return result
 
     except:
-        e = sys.exc_info()[0]
-        print( "<p>** ERROR **: %s</p>" % e )
+        print_error(sys.exc_info()[0])
         return 'error'
-
-def api_request(ip):
-
-    for row in user_password_list:
-
-        user=row[0].strip()
-        password=row[1].strip()
-
-        print('testing: '+user + '@' +password)
-
-        result=get_data_from_api(user,password,ip,plain)
-        if result=='error':
-            result=get_data_from_api(user,password,ip,token)
-
-        # ('10.200.54.2', 'admin', 'N0s31717', 'RB962 VILLASAUCE', 'full', '6.38.7 (bugfix)', 'RouterBOARD 962UiGS-5HacT2HnT')
-        if result[4]=='full':
-            return result
-
-    return ''
 
 def get_data_from_ssh(user,password,ip):
 
@@ -498,10 +477,6 @@ def get_data_from_ssh(user,password,ip):
         ssh=paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(ip,22,user,password)
-
-        #Encendiendo API
-        stdin,stdout,stderr=ssh.exec_command(cmd3)
-        api_on=stdout.readlines()
         
         #GRUPO
         stdin,stdout,stderr=ssh.exec_command(cmd0)
@@ -509,6 +484,8 @@ def get_data_from_ssh(user,password,ip):
         outlines=outlines[0]
         if 'group=full' in outlines:
             group_ssh='full'
+            stdin,stdout,stderr=ssh.exec_command(cmd3)
+            api_on=stdout.readlines()
         else:
             group_ssh=''
 
@@ -534,13 +511,33 @@ def get_data_from_ssh(user,password,ip):
                 modelo_ssh=row.split('model:')[1].strip()
                 break
 
+        if group_ssh!='' and group_ssh!='full':
+            to_MySQL((ip,user,password,group_ssh,identity_ssh,version_ssh,modelo_ssh,'22'),puertos)
+
         result = (ip,user,password,group_ssh,identity_ssh,version_ssh,modelo_ssh,'22')
         return result
 
     except:
-        e = sys.exc_info()[0]
-        print( "<p>** ERROR **: %s</p>" % e )
+        print_error(sys.exc_info()[0])
         return 'error'
+
+def api_request(ip):
+
+    for row in user_password_list:
+
+        user=row[0].strip()
+        password=row[1].strip()
+
+        print(ip+' ==> '+user + '@' +password)
+
+        result=get_data_from_api(user,password,ip,plain)
+        if result=='error':
+            result=get_data_from_api(user,password,ip,token)
+
+        if result[4]=='full':
+            return result
+
+    return ''
 
 def ssh_request(ip):
 
@@ -551,9 +548,9 @@ def ssh_request(ip):
 
         result=''
 
-        print('testing: '+user + '@' +password)
+        print(ip+' ==> '+user + '@' +password)
         result=get_data_from_ssh(user,password,ip)
-        print(result)
+        #print(result)
 
         if result!='error' and 'full' in result:
             return result
@@ -562,45 +559,67 @@ def ssh_request(ip):
 
 def to_MySQL (status,puertos):
 
-    # ('10.200.54.2', 'admin', 'N0s31717', 'RB962 VILLASAUCE', 'full', '6.38.7 (bugfix)', 'RouterBOARD 962UiGS-5HacT2HnT', '8728')
-    # (1, 1, 1, 1, 0, 0)
+    try:
 
-    identity=status[3]
-    ip=status[0]
-    user=status[1]
-    password=status[2]
-    version=status[5]
-    modelo=status[6]
-    group=status[4]
-    puerto=status[7]
-    ping_status=puertos[2]
-    ssh=puertos[1]
-    api=puertos[0]
-    port8291=puertos[3]
-    port8299=puertos[4]
-    port8292=puertos[5]
+        # ('10.200.54.2', 'admin', 'N0s31717', 'RB962 VILLASAUCE', 'full', '6.38.7 (bugfix)', 'RouterBOARD 962UiGS-5HacT2HnT', '8728')
+        # (1, 1, 1, 1, 0, 0)
 
-    # sys.exit()
+        identity=status[3]
+        ip=status[0]
+        user=status[1]
+        password=status[2]
+        version=status[5]
+        modelo=status[6]
+        group=status[4]
+        puerto=status[7]
+        ping_status=puertos[2]
+        ssh=puertos[1]
+        api=puertos[0]
+        port8291=puertos[3]
+        port8299=puertos[4]
+        port8292=puertos[5]
 
-    db = mysql.connect(host = "160.20.188.232",user = "remote",passwd = "M4ndr4g0r4!",database ="network")
-    databases = db.cursor()
+        db = mysql.connect(host = "160.20.188.232",user = "remote",passwd = "M4ndr4g0r4!",database ="network")
+        databases = db.cursor()
 
-    query = 'DELETE FROM network.devices WHERE ip ="'+ip+'"'
+        query = 'DELETE FROM network.devices WHERE ip ="'+ip+'"'
 
-    databases.execute(query)
-    db.commit()
+        databases.execute(query)
+        db.commit()
 
-    print(ip,identity,sep=': ')
-    
-    query = "INSERT INTO devices (identity, ip,user ,password, version, modelo ,grupo, puertoacceso, ping_status, ssh_status, api_status, var_port_8291, var_port_8299, var_port_8292) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
-    values = (identity, ip, user , password, version, modelo, group, puerto, ping_status, ssh, api, port8291, port8299, port8292)
-    databases.execute(query, values) 
-    db.commit()
+        print(ip,identity,sep=' ==> ')
+        
+        query = "INSERT INTO devices (identity, ip,user ,password, version, modelo ,grupo, puertoacceso, ping_status, ssh_status, api_status, var_port_8291, var_port_8299, var_port_8292) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
+        values = (identity, ip, user , password, version, modelo, group, puerto, ping_status, ssh, api, port8291, port8299, port8292)
+        databases.execute(query, values) 
+        db.commit()
+
+        return ''
+
+    except:
+        print_error(sys.exc_info()[0])
+        return ''
+
+def print_error(data):
+    data=str(data)
+    if 'librouteros.exceptions.FatalError' in data:
+        return
+    if 'librouteros.exceptions.TrapError' in data:
+        return
+    if 'paramiko.ssh_exception.AuthenticationException' in data:
+        return
+    print(ip+' ==> ** ERROR **: '+data)
+
+if len(sys.argv) == 2:
+    ip=sys.argv[1]
+else:
+    #sys.exit()
 
 ip='10.200.54.2'
 
+print(' ++ '+ip )
 puertos=port_open(ip)
-print(ip,puertos,sep=': ')
+print(ip,puertos,sep=' ==> ')
 
 api=puertos[0]
 ssh=puertos[1]
@@ -626,42 +645,31 @@ else:
         status=api_request(ip)
         if status!='':
             to_MySQL(status,puertos)
-            print(status)
             sys.exit()
         else:
             status=ssh_request(ip)
             if status!='':
-                # Insertar en MySQL
+                to_MySQL(status,puertos)
                 sys.exit()
             else:
-                # Insertar en MySQL
+                to_MySQL((ip,'','','','','','',''),puertos)
                 sys.exit()
     elif api==1:
         status=api_request(ip)
-        # Insertar en MySQL
+        if status!='':
+            to_MySQL(status,puertos)
+        else:
+            to_MySQL((ip,'','','','','','',''),puertos)
         sys.exit()
     elif ssh==1:
         status=ssh_request(ip)
-        # Insertar en MySQL
+        if status!='':
+            to_MySQL(status,puertos)
+        else:
+            to_MySQL((ip,'','','','','','',''),puertos)
         sys.exit()
     else:
-        # Insertar en MySQL
+        to_MySQL((ip,'','','','','','',''),puertos)
         sys.exit()
 
 
-
-
-
-
-
-
-
-if ssh==1:
-    print('SSH--> OK')
-    login(ip, api, ssh, ping, port8291, port8299, port8292)
-if ssh==0 and ping==1:
-    print ('PING-->OK')
-    insertBD ('Sin Identity', ip, "Sin Usuario" , "Sin clave","NoVersion","NoModel", "Sin grupo",'--', ping, ssh, api, port8291, port8299, port8292)
-elif ping==0:
-    print('API  = OFF, SSH= OFF, PING= OFF, 8291= OFF, 8299= OFF, 8292= OFF')
-    exit()
