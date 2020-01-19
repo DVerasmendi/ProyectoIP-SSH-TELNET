@@ -11,6 +11,10 @@ from librouteros.query import Key
 from netaddr import *
 import pprint
 
+from colorama import Fore, Back, Style, init
+
+print(Style.RESET_ALL)
+
 api=''
 prefix_list = []
 
@@ -52,17 +56,36 @@ print(prefix_list)
 
 input('continue?')
 
-print()
 counter=1
+print('calculating ...')
 for prefix in prefix_list:
     ipv4_prefix=IPNetwork(prefix)
     for ip in ipv4_prefix:
-        print(ip)
-        pid = subprocess.Popen([sys.executable, "search.py", str(ip)])
-        #time.sleep(10)
         counter=counter+1
-    time.sleep(120)
+total=counter
+print('TOTAL: '+str(counter))
+
+input('continue?')
+
 print()
-print(counter)
+t1=time.time()
+counter=1
+counter_for=1
+for prefix in prefix_list:
+    ipv4_prefix=IPNetwork(prefix)
+    for ip in ipv4_prefix:
+        percent=counter_for*100/total
+        t2=time.time()-t1
+        text=str(t2/60) + ' ==> ' + str(counter_for) + '/' + str(total) + ' = ' + str(percent) + '%: ' + str(ip)
+        print(text)
+        pid = subprocess.Popen([sys.executable, "search.py", str(ip)])
+        counter=counter+1
+        counter_for=counter_for+1
+        if counter==100:
+            counter=1
+            time.sleep(60)
+    print('counter: '+ str(counter))
+    time.sleep(10)
+print('*** END ***')
 
 
