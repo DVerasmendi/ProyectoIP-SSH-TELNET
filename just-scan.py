@@ -4,7 +4,6 @@ from librouteros.login import plain, token
 from librouteros.query import Key
 import pprint
 import paramiko
-from ping3 import ping, verbose_ping
 import requests
 import telnetlib
 import time
@@ -14,6 +13,7 @@ import sys
 import mysql.connector as mysql
 import socket
 from colorama import Fore, Back, Style, init
+from pythonping import ping
 
 
 def to_MySQL_summary(ip, puertos):
@@ -56,11 +56,11 @@ def check_port(ip):
     port_list = [8728, 22, 8291, 8299, 8292]
     port_list_result = [0, 0, 0, 0, 0, 0]
 
-    for x in range(3):
-        ping_response = ping(ip)
-        if isinstance(ping_response, float):
-            port_list_result[0] = 1
-            return port_list_result
+    response_list = ping(ip, size=40, count=5, verbose=True)
+    tf=response_list.rtt_avg_ms
+    if tf<2000:
+        port_list_result[0] = 1
+        return port_list_result
 
     counter = 1
     for port in port_list:

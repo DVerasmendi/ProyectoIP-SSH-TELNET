@@ -15,6 +15,14 @@ from colorama import Fore, Back, Style, init
 
 import psutil
 
+def readCPU():
+    ps=0
+    x=0
+    for i, percentage in enumerate(psutil.cpu_percent(percpu=True)):
+        ps=ps+percentage
+        x=ps/(i+1)
+    return x
+
 print(Style.RESET_ALL)
 
 api=''
@@ -87,13 +95,14 @@ for prefix in prefix_list:
         while percent_ref==0:
             ram=dict(psutil.virtual_memory()._asdict())
             percent=ram.get('percent')
-            if percent<80:
-                print(percent)
+            cpu_percent=readCPU()
+            if percent < 80 and cpu_percent < 80:
+                print(str(int(percent))+'/'+str(int(cpu_percent)))
                 percent_ref=1
             else:
                 percent_ref==0
                 time.sleep(1)
-                print(percent)
+                print(str(int(percent))+'/'+str(int(cpu_percent)))
         percent_ref=0
     print('counter: '+ str(counter))
 print('*** END ***')
