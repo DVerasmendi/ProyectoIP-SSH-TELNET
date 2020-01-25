@@ -56,7 +56,7 @@ def check_port(ip):
     port_list = [8728, 22, 8291, 8299, 8292]
     port_list_result = [0, 0, 0, 0, 0, 0]
 
-    response_list = ping(ip, size=40, count=5, verbose=True)
+    response_list = ping(ip, size=40, count=5)
     tf=response_list.rtt_avg_ms
     if tf<2000:
         port_list_result[0] = 1

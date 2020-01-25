@@ -89,14 +89,28 @@ for prefix in prefix_list:
         t2=time.time()-t1
         text=str(t2/60) + ' ==> ' + str(counter_for) + '/' + str(total) + ' = ' + str(percent) + '%: ' + str(ip)
         print(text)
-        pid = subprocess.Popen([sys.executable, "just-scan.py", str(ip)])
+        dont_run = 0
+        for pr in psutil.process_iter():
+            if 'python3' in pr.name():
+                pinfo = pr.as_dict(attrs=['cmdline'])
+                cmdline = pinfo.get('cmdline')
+                # print(cmdline)
+                if ip in cmdline:
+                    print(Fore.YELLOW, '')
+                    print('************************')
+                    print('dont_run', ip, sep=': ')
+                    print('************************')
+                    print(Style.RESET_ALL)
+                    dont_run = 1
+        if dont_run == 0:
+            subprocess.Popen([sys.executable, "just-scan.py", str(ip)])
         counter=counter+1
         counter_for=counter_for+1
         while percent_ref==0:
             ram=dict(psutil.virtual_memory()._asdict())
             percent=ram.get('percent')
             cpu_percent=readCPU()
-            if percent < 80 and cpu_percent < 80:
+            if percent < 85 and cpu_percent < 85:
                 print(str(int(percent))+'/'+str(int(cpu_percent)))
                 percent_ref=1
             else:
