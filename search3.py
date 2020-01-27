@@ -379,7 +379,8 @@ def writelog(data):
 ip = ''
 # ipi='10.200.54.2'
 # ip = '10.143.68.254'
-ip = '10.18.12.254'
+# ip = '10.18.12.254'
+# ip='10.23.15.250'
 if ip == '':
     if len(sys.argv) == 2:
         ip = sys.argv[1]

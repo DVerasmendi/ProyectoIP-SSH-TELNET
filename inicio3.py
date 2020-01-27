@@ -48,8 +48,8 @@ for row in records:
     t2=time.time()-t1
     text=str(t2/60) + ' ==> ' + str(counter_for) + '/' + str(total) + ' = ' + str(percent) + '%: ' + str(ip)
     print(text)
-    # subprocess.Popen([sys.executable, "search3.py", str(ip)])
-    print('subprocess: '+ip)
+    subprocess.Popen([sys.executable, "search3.py", str(ip)])
+    print("search3.py", str(ip))
     counter=counter+1
     counter_for=counter_for+1
     while percent_ref==0:
