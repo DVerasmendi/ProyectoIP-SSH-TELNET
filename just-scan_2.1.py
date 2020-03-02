@@ -25,21 +25,42 @@ def to_MySQL_summary(ip, puertos):
     port8299 = puertos[4]
     port8292 = puertos[5]
 
+    ip=ip
+    ping=ping_status
+    ssh=ssh
+    api=api
+    port_8291=port8291
+    port_8292=port8292
+    port_8299=port8299
+
+    port_status=(ip, ping, ssh, api, port_8291, port_8292, port_8299)
+    port_name=('ip', 'ping', 'ssh', 'api', 'port_8291', 'port_8292', 'port_8299')
+
     db = mysql.connect(host="160.20.188.232", user="remote", passwd="M4ndr4g0r4!", database="network")
     databases = db.cursor()
 
-    query = 'DELETE FROM network.summary WHERE ip ="'+ip+'"'
-
+    query = "SELECT ip, ping, ssh, api, port_8291, port_8292, port_8299 FROM network.summary where ip='"+ip+"';"
     databases.execute(query)
-    db.commit()
+    data = databases.fetchall()
+    k=0
+    if len(data)==1:
+        for row in data[0]:
+            if row!=port_status[k] and row==1:
+                query="UPDATE network.summary SET "+port_name[k]+" = '"+port_status[k]+"' WHERE ip='"+ip+"'"
+                databases.execute(query)
+                db.commit()
+            k=k+1
+    else:
+        query = "INSERT INTO summary (ip, ping, ssh, api, port_8291, port_8292, port_8299) VALUES (%s,%s,%s,%s,%s,%s,%s)"
+        values = (ip, ping_status, ssh, api, port8291, port8292, port8299)
+        databases.execute(query, values)
+        db.commit()
 
-    query = "INSERT INTO summary (ip, ping, ssh, api, port_8291, port_8292, port_8299) VALUES (%s,%s,%s,%s,%s,%s,%s)"
-    values = (ip, ping_status, ssh, api, port8291, port8292, port8299)
-    databases.execute(query, values)
-    db.commit()
+    # query = 'DELETE FROM network.summary WHERE ip ="'+ip+'"'
+    # databases.execute(query)
+    # db.commit()
 
     return ''
-
 
 def writelog(data):
     try:
@@ -77,10 +98,9 @@ def check_port(ip):
 
 
 ip = ''
-# ipi='10.200.54.2'
-# ip = '10.143.68.254'
-# ip = '10.18.12.254'
-# ip='10.0.4.176'
+ip='127.0.0.1'
+ip='10.18.12.1'
+
 if ip == '':
     if len(sys.argv) == 2:
         ip = sys.argv[1]
