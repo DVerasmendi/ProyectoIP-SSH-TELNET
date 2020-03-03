@@ -56,8 +56,8 @@ for row in records:
         ram=dict(psutil.virtual_memory()._asdict())
         percent=ram.get('percent')
         cpu_percent=readCPU()
-        time.sleep(0.1)
-        if percent < 85 and cpu_percent < 85:
+        time.sleep(0.2)
+        if percent < 75 and cpu_percent < 75:
             print(str(int(percent))+'/'+str(int(cpu_percent)))
             percent_ref=1
         else:
