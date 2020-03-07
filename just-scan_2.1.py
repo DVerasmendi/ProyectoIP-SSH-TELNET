@@ -100,6 +100,7 @@ def check_port(ip):
 ip = ''
 ip='127.0.0.1'
 ip='10.18.12.1'
+ip='10.63.103.1'
 
 if ip == '':
     if len(sys.argv) == 2:
