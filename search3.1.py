@@ -189,18 +189,20 @@ def to_MySQL(status, puertos):
 
         db = mysql.connect(host="160.20.188.232", user="remote", passwd="M4ndr4g0r4!", database="network")
         databases = db.cursor()
-
         query = 'DELETE FROM network.devices WHERE ip ="'+ip+'"'
-
         databases.execute(query)
         db.commit()
+        db.close()
 
         print(ip, identity, sep=' ==> ')
 
+        db = mysql.connect(host="160.20.188.232", user="remote", passwd="M4ndr4g0r4!", database="network")
+        databases = db.cursor()
         query = "INSERT INTO devices (identity, ip,user ,password, version, modelo ,grupo, puertoacceso, ping_status, ssh_status, api_status, var_port_8291, var_port_8299, var_port_8292) VALUES (%s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
         values = (identity, ip, user, password, version, modelo, group, puerto, ping_status, ssh, api, port8291, port8299, port8292)
         databases.execute(query, values)
         db.commit()
+        db.close()
 
         print(values)
         return ''
@@ -248,7 +250,8 @@ def to_MySQL_update(status, puertos):
             databases.execute(query)
             db.commit()
             counter = counter+1
-
+        
+        db.close()
         return ''
 
     except:
@@ -269,16 +272,18 @@ def to_MySQL_summary(ip, puertos):
 
         db = mysql.connect(host="160.20.188.232", user="remote", passwd="M4ndr4g0r4!", database="network")
         databases = db.cursor()
-
         query = 'DELETE FROM network.summary WHERE ip ="'+ip+'"'
-
         databases.execute(query)
         db.commit()
+        db.close()
 
+        db = mysql.connect(host="160.20.188.232", user="remote", passwd="M4ndr4g0r4!", database="network")
+        databases = db.cursor()
         query = "INSERT INTO summary (ip, ping, ssh, api, port_8291, port_8292, port_8299) VALUES (%s,%s,%s,%s,%s,%s,%s)"
         values = (ip, ping_status, ssh, api, port8291, port8292, port8299)
         databases.execute(query, values)
         db.commit()
+        db.close()
 
         return ''
 
@@ -292,10 +297,10 @@ def count_MySQL_IP_full(ip):
 
         db = mysql.connect(host="160.20.188.232", user="remote", passwd="M4ndr4g0r4!", database="network")
         databases = db.cursor()
-
         query = "SELECT COUNT(*) as total FROM network.devices WHERE ip='"+ip+"' AND grupo='full'"
         databases.execute(query)
         data = databases.fetchall()
+        db.close()
         for row in data:
             if row[0]==0:
                 return 0
@@ -381,6 +386,8 @@ ip = ''
 # ip = '10.143.68.254'
 # ip = '10.18.12.254'
 # ip='10.23.15.250'
+ip='10.160.35.122'
+
 if ip == '':
     if len(sys.argv) == 2:
         ip = sys.argv[1]
@@ -460,5 +467,7 @@ except:
         print(row)
         error_data = error_data+str(row)
     writelog(error_data)
+    tb = sys.exc_info()[2]
+    print('line:',tb.tb_lineno)
     print('************************')
     print(Style.RESET_ALL)

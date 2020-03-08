@@ -38,7 +38,6 @@ def to_MySQL_summary(ip, puertos):
 
     db = mysql.connect(host="160.20.188.232", user="remote", passwd="M4ndr4g0r4!", database="network")
     databases = db.cursor()
-
     query = "SELECT ip, ping, ssh, api, port_8291, port_8292, port_8299 FROM network.summary where ip='"+ip+"';"
     databases.execute(query)
     data = databases.fetchall()
@@ -46,7 +45,7 @@ def to_MySQL_summary(ip, puertos):
     if len(data)==1:
         for row in data[0]:
             if row!=port_status[k] and row==1:
-                query="UPDATE network.summary SET "+port_name[k]+" = '"+port_status[k]+"' WHERE ip='"+ip+"'"
+                query="UPDATE network.summary SET "+port_name[k]+" = '"+str(port_status[k])+"' WHERE ip='"+ip+"'"
                 databases.execute(query)
                 db.commit()
             k=k+1
@@ -55,10 +54,8 @@ def to_MySQL_summary(ip, puertos):
         values = (ip, ping_status, ssh, api, port8291, port8292, port8299)
         databases.execute(query, values)
         db.commit()
-
-    # query = 'DELETE FROM network.summary WHERE ip ="'+ip+'"'
-    # databases.execute(query)
-    # db.commit()
+    
+    db.close()
 
     return ''
 
@@ -98,9 +95,7 @@ def check_port(ip):
 
 
 ip = ''
-ip='127.0.0.1'
-ip='10.18.12.1'
-ip='10.63.103.1'
+# ip='10.160.35.122'
 
 if ip == '':
     if len(sys.argv) == 2:
@@ -143,5 +138,7 @@ except:
         print(row)
         error_data = error_data+str(row)
     writelog(error_data)
+    tb = sys.exc_info()[2]
+    print('line:',tb.tb_lineno)
     print('************************')
     print(Style.RESET_ALL)

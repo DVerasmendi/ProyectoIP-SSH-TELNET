@@ -27,10 +27,10 @@ def readCPU():
 
 db = mysql.connect(host="160.20.188.232", user="remote", passwd="M4ndr4g0r4!", database="network")
 databases = db.cursor()
-
 query = "SELECT * FROM network.summary;"
 databases.execute(query)
 records = databases.fetchall()
+db.close()
 
 total=0
 for row in records:
@@ -48,7 +48,7 @@ for row in records:
     t2=time.time()-t1
     text=str(t2/60) + ' ==> ' + str(counter_for) + '/' + str(total) + ' = ' + str(percent) + '%: ' + str(ip)
     print(text)
-    subprocess.Popen([sys.executable, "search3.py", str(ip)])
+    subprocess.Popen([sys.executable, "search3.1.py", str(ip)])
     print("search3.py", str(ip))
     counter=counter+1
     counter_for=counter_for+1
@@ -56,7 +56,7 @@ for row in records:
         ram=dict(psutil.virtual_memory()._asdict())
         percent=ram.get('percent')
         cpu_percent=readCPU()
-        time.sleep(0.2)
+        #time.sleep(0.2)
         if percent < 75 and cpu_percent < 75:
             print(str(int(percent))+'/'+str(int(cpu_percent)))
             percent_ref=1

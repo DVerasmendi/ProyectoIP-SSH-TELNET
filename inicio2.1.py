@@ -13,7 +13,9 @@ import mysql.connector as mysql
 from colorama import Fore, Back, Style, init
 import psutil
 
-while True:
+bool_while=True
+
+while bool_while==True:
 
     def readCPU():
         ps=0
@@ -80,6 +82,7 @@ while True:
         values = (data,)
         databases.execute(query, values)
         db.commit()
+        db.close()
 
     #input('continue?')
 
@@ -100,7 +103,7 @@ while True:
     print()
 
     print('=================')
-    #input('begin?')
+    input('begin?')
 
     prefix_list=[]
     db = mysql.connect(host="160.20.188.232", user="remote", passwd="M4ndr4g0r4!", database="network")
@@ -108,6 +111,7 @@ while True:
     query = "SELECT DISTINCT red FROM `network`.`redes`;"
     databases.execute(query)
     data = databases.fetchall()
+    db.close()
     for row in data:
         prefix_list.append(row[0])
 
@@ -144,7 +148,8 @@ while True:
                 ram=dict(psutil.virtual_memory()._asdict())
                 percent=ram.get('percent')
                 cpu_percent=readCPU()
-                if percent < 85 and cpu_percent < 85:
+                #time.sleep(0.2)
+                if percent < 75 and cpu_percent < 75:
                     print(str(int(percent))+'/'+str(int(cpu_percent)))
                     percent_ref=1
                 else:
@@ -158,3 +163,7 @@ while True:
     print()
     print('restarting ...')
     time.sleep(60)
+
+    bool_while=False
+
+print('*** END ***')
